@@ -1,0 +1,28 @@
+{
+  "name": "npm-native",
+  "version": "1.0.0",
+  "description": "manage your XCode dependencies via npm",
+  "main": "lib/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "ava",
+    "flow": "flow check"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ptmt/npm-native.git"
+  },
+  "author": "Dmitriy Loktev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ptmt/npm-native/issues"
+  },
+  "homepage": "https://github.com/ptmt/npm-native#readme",
+  "devDependencies": {
+    "ava": "^0.4.2",
+    "babel-eslint": "^4.1.5",
+    "eslint": "^1.9.0"
+  }
+}
