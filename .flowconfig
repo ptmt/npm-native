@@ -1,2 +1,6 @@
+[ignore]
+.*/lib/.*
+.*/node_modules/.*
+
 [version]
 0.18.1
