@@ -32,12 +32,21 @@ function getDepPath(dependency/*: DependencyOptions*/) {
     dependency.depProject + '/project.pbxproj';
 }
 
+function getProducts(parsedProject) {
+  return parsedProject
+    .pbxGroupByName('Products')
+    .children
+    .map(c => c.comment)
+    .filter(c => c.indexOf('.a') > -1);
+}
+
 /*
  *  Then we should do something like a transaction:
  *  If one operation fails, all operations should be rollback
 */
 module.exports.addDependency = function(dependency/*: DependencyOptions*/)/*: void*/ {
-  //const { targetProject, dependencyProject } = dependency;
+
+  console.log('add', dependency.depProject, 'to', dependency.targetProject);
   const targetProjectPath = dependency.targetProject + '/project.pbxproj';
   const parsedTarget = xcode.project(targetProjectPath).parseSync();
   const parsedDependency = xcode.project(getDepPath(dependency)).parseSync();
@@ -48,11 +57,7 @@ module.exports.addDependency = function(dependency/*: DependencyOptions*/)/*: vo
     return;
   }
 
-  const products = parsedDependency
-    .pbxGroupByName('Products')
-    .children
-    .map(c => c.comment)
-    .filter(c => c.indexOf('.a') > -1);
+  const products = getProducts(parsedDependency);
 
   var file = new pbxFile(dependency.depProject);
   file.uuid = parsedTarget.generateUuid();
@@ -60,12 +65,7 @@ module.exports.addDependency = function(dependency/*: DependencyOptions*/)/*: vo
   parsedTarget.addToPbxFileReferenceSection(file);    // PBXFileReference
   pbxGroup.children.push(pbxGroupChild(file));
 
-  console.log('Libraries:', parsedTarget.pbxGroupByName('Libraries'))
-
   products.forEach(p => parsedTarget.addStaticLibrary(p));
-
-  console.log('Build phases:', parsedTarget.pbxFrameworksBuildPhaseObj());
-
   fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
 }
 
@@ -73,24 +73,32 @@ module.exports.removeDependency = function(dependency/*: DependencyOptions*/)/*:
   console.log('remove', dependency.depProject, 'from', dependency.targetProject);
   const targetProjectPath = dependency.targetProject + '/project.pbxproj';
   const parsedTarget = xcode.project(targetProjectPath).parseSync();
+  const parsedDependency = xcode.project(getDepPath(dependency)).parseSync();
   const refSection = parsedTarget.pbxFileReferenceSection();
-  console.log(refSection)
+  const pbxGroup = parsedTarget.pbxGroupByName('Libraries');
+  //console.log(refSection)
+
   const fileKey = Object.keys(refSection)
-    .filter(k => refSection[k].path = dependency.depProject)[0]//parsedTarget.pbxFrameworksBuildPhaseObj().files[0];
-  if (!fileKey) {
+    .filter(k => refSection[k].path && refSection[k].path.indexOf(dependency.depProject) > -1);
+
+  if (!fileKey || fileKey.length === 0) {
+    console.log('Nothing to remove');
     return;
   }
-  const file = refSection[fileKey];
+
+  const file = refSection[fileKey[0]];
   file.basename = path.basename(file.path);
-  console.log('remove fileReference', file);
 
-  // remove PBXFileReference & static
+  // remove PBXFileReference & static refs
   parsedTarget.removeFromPbxFileReferenceSection(file);
-  // parsedTarget.removeFromPbxBuildFileSection(file);        // PBXBuildFile
-  // parsedTarget.removeFromPbxFrameworksBuildPhase(file);    // PBXFrameworksBuildPhase
-  // parsedTarget.removeFromLibrarySearchPaths(file);
+  const products = getProducts(parsedDependency);
+  products.forEach(p => parsedTarget.removeFromPbxFileReferenceSection(new pbxFile(p)));
+  products.forEach(p => parsedTarget.removeFromPbxFrameworksBuildPhase(new pbxFile(p)));
+  products.forEach(p => parsedTarget.removeFromPbxBuildFileSection(new pbxFile(p)));
 
-  console.log('Build phases:', parsedTarget.pbxFrameworksBuildPhaseObj());
+  // remove from Libraries pbxGroup
+  pbxGroup.children = pbxGroup.children.filter(c => c.comment.indexOf(dependency.depProject.split('/').slice(-1)[0]) === -1);
+
   fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
 }
 
@@ -101,13 +109,6 @@ function pbxGroupChild(file) {
     return obj;
 }
 
-function removeStaticLibrary(xcode/*: any*/, file/*:PbxFile */, opt/*:any */) {
-    opt = opt || {};
-
-    xcode.removeFromPbxFileReferenceSection(file);
-    xcode.removeFromPbxBuildFileSection(file);        // PBXBuildFile
-    xcode.removeFromPbxFrameworksBuildPhase(file);    // PBXFrameworksBuildPhase
-    xcode.removeFromLibrarySearchPaths(file);
-
-    return file;
+function removeContainerItem(project) {
+  console.log(project.hash.project.objects['PBXContainerItemProxy']);
 }
