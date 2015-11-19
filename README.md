@@ -24,11 +24,13 @@ E.g. `npm-native --install RNGL.xcodeproj` for `gl-react-native`.
 
 ## TODO
 
--[] Validate the final xcodeproj file and if it fails rollback it to the previous state;
+-[x] Backup before modify .pbxproj;
 
--[] Allow to copy resources like font files;
+-[ ] Validate the final .pbxproj file and if it fails rollback it to the previous state;
 
--[] Android support;
+-[ ] Allow to copy resources like font files;
+
+-[ ] Android support;
 
 ## Plugins includes npm-native
 
