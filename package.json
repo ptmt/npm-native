@@ -1,7 +1,7 @@
 {
   "name": "npm-native",
-  "version": "0.1.0",
-  "description": "manage your XCode dependencies via npm",
+  "version": "0.1.6",
+  "description": "Manage your XCode dependencies via npm",
   "main": "lib/index.js",
   "directories": {
     "test": "test"
@@ -24,6 +24,7 @@
     "url": "https://github.com/ptmt/npm-native/issues"
   },
   "homepage": "https://github.com/ptmt/npm-native#readme",
+  "keywords": ["react-native", "xcode"],
   "devDependencies": {
     "ava": "^0.4.2",
     "eslint": "^1.9.0"

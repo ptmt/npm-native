@@ -1,6 +1,5 @@
 # npm-native
-Parse and modify `xcodeproj` files on-the-fly. Do `npm install react-native-yourplugin` and answer Y when it promted.
-If something goes wrong, `xcodeproj` state would be rollback.
+Just do `npm install react-native-yourplugin`.
 
 [![Build Status](https://travis-ci.org/ptmt/npm-native.svg)](https://travis-ci.org/ptmt/npm-native)
 
@@ -9,17 +8,22 @@ If something goes wrong, `xcodeproj` state would be rollback.
 `package.json`:
 
 ```
-{ "scripts" :
+{
+  "scripts" :
   {
-    "postinstall" : "npm-native install --path_to_lib.xpbproj",
-    "uninstall" : "npm-native uninstall --path_to_lib.xpbproj"
+    "postinstall" : "npm-native --install path_to_lib.xcodeproj",
+    "uninstall" : "npm-native --uninstall path_to_lib.xcodeproj"
   }
 }
 ```
---path_to_lib - where your XCode project is placed.
+`--path_to_lib` - where your XCode project is placed.
 
+## TODO
 
+-[] Validate the final xcodeproj file and if it fails rollback it to the previous state;
+-[] Allow to copy resources like font files;
+-[] Android support;
 
-## Plugins with support npm-native
+## Plugins includes npm-native
 
-There is no such.
+Nothing here.

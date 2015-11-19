@@ -9,7 +9,6 @@ const path = require('path');
   type XCodeProjectPath = string;
   type DependencyOptions = {
     targetProject: XCodeProjectPath,
-    DependencyOptions:
     dependencyProject: XCodeProjectPath
   }
 
@@ -22,7 +21,7 @@ const path = require('path');
  *  Should we do it recursively?
  *  What if there are more than one instance?
  */
-module.exports.findTargetProject = function()/*: XCodeProjectPath*/ {
+module.exports.findTargetProject = function(startPath/*:string*/)/*: Array<XCodeProjectPath>*/ {
   const search = dir => {
     var results = [];
     const list = fs.readdirSync(dir);
@@ -30,25 +29,24 @@ module.exports.findTargetProject = function()/*: XCodeProjectPath*/ {
     list.forEach(file => {
         file = dir + '/' + file;
         const stat = fs.statSync(file);
+        const relative = file.replace(startPath, '');
         if (stat && stat.isDirectory()
-        && file.indexOf('node_modules') === -1
-        && file.indexOf('.git') === -1) {
+        && relative.indexOf('node_modules') === -1
+        && relative.indexOf('.git') === -1) {
           results = results.concat(search(file));
         } else {
           if (file.indexOf('.pbxproj') > -1) {
               results.push(dir);
           }
         }
-    })
-    console.log(dir, results);
+    });
     return results;
   }
-  return search('.');
+  return search(startPath); // TODO: more stable way
 }
 
-function getDepPath(dependency/*: DependencyOptions*/) {
-  return dependency.targetProject.split('/').slice(0, -1).join('/') + '/' +
-    dependency.depProject + '/project.pbxproj';
+function getRelativeDepPath(dependency/*: DependencyOptions*/) {
+  return path.relative(dependency.targetProject, dependency.depProject).slice(3); // remove ../
 }
 
 function getProducts(parsedProject)/*: Array<any> */ {
@@ -66,40 +64,40 @@ function getProducts(parsedProject)/*: Array<any> */ {
 module.exports.addDependency = function(dependency/*: DependencyOptions*/)/*: boolean*/ {
   const targetProjectPath = dependency.targetProject + '/project.pbxproj';
   const parsedTarget = xcode.project(targetProjectPath).parseSync();
-  const parsedDependency = xcode.project(getDepPath(dependency)).parseSync();
+  const parsedDependency = xcode.project(dependency.depProject + '/project.pbxproj').parseSync();
   const pbxGroup = parsedTarget.pbxGroupByName('Libraries');
 
   if (pbxGroup.children.filter(c => c.comment.indexOf(dependency.depProject.split('/').slice(-1)[0]) > -1).length > 0) {
-    dependency.cli.info(dependency.depProject, 'already installed!');
     return false;
   }
 
+  fs.writeFileSync(targetProjectPath + '.backup', parsedTarget.writeSync());
+
   const products = getProducts(parsedDependency);
 
-  var file = new pbxFile(dependency.depProject);
+  var file = new pbxFile(getRelativeDepPath(dependency));
   file.uuid = parsedTarget.generateUuid();
   file.fileRef = parsedTarget.generateUuid();
   parsedTarget.addToPbxFileReferenceSection(file);    // PBXFileReference
   pbxGroup.children.push(pbxGroupChild(file));
-
   products.forEach(p => parsedTarget.addStaticLibrary(p));
-  //fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
+  products.forEach(p => parsedTarget.addToPbxBuildFileSection(new pbxFile(p))); // why add this
+  fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
   return true;
 }
 
 module.exports.removeDependency = function(dependency/*: DependencyOptions*/)/*: boolean*/  {
   const targetProjectPath = dependency.targetProject + '/project.pbxproj';
   const parsedTarget = xcode.project(targetProjectPath).parseSync();
-  const parsedDependency = xcode.project(getDepPath(dependency)).parseSync();
+  const parsedDependency = xcode.project(dependency.depProject + '/project.pbxproj').parseSync();
   const refSection = parsedTarget.pbxFileReferenceSection();
   const pbxGroup = parsedTarget.pbxGroupByName('Libraries');
-  //console.log(refSection)
+  const relativePath = getRelativeDepPath(dependency);
 
   const fileKey = Object.keys(refSection)
-    .filter(k => refSection[k].path && refSection[k].path.indexOf(dependency.depProject) > -1);
+    .filter(k => refSection[k].path && refSection[k].path.indexOf(relativePath) > -1);
 
   if (!fileKey || fileKey.length === 0) {
-    dependency.cli.info('Nothing to remove');
     return false;
   }
 
@@ -114,9 +112,9 @@ module.exports.removeDependency = function(dependency/*: DependencyOptions*/)/*:
   products.forEach(p => parsedTarget.removeFromPbxBuildFileSection(new pbxFile(p)));
 
   // remove from Libraries pbxGroup
-  pbxGroup.children = pbxGroup.children.filter(c => c.comment.indexOf(dependency.depProject.split('/').slice(-1)[0]) === -1);
+  pbxGroup.children = pbxGroup.children.filter(c => c.comment.indexOf(relativePath.split('/').slice(-1)[0]) === -1);
 
-  //fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
+  fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
   return true;
 }
 
