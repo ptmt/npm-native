@@ -66,20 +66,6 @@
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = ReactNativeTestApp;
 		};
-		039D12561BFCB7E2003F4655 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 350EB6BEDB4B4CBF9967FE00 /* RNGL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 34B330031B821571003856F8;
-			remoteInfo = RNGL;
-		};
-		039D12581BFCB7E2003F4655 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 350EB6BEDB4B4CBF9967FE00 /* RNGL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 34B3300E1B821571003856F8;
-			remoteInfo = RNGLTests;
-		};
 		139105C01AF99BAD00B5F7CC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 139105B61AF99BAD00B5F7CC /* RCTSettings.xcodeproj */;
@@ -224,15 +210,6 @@
 				00E356F11AD99517003FC87E /* Info.plist */,
 			);
 			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		039D12481BFCB7E2003F4655 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				039D12571BFCB7E2003F4655 /* libRNGL.a */,
-				039D12591BFCB7E2003F4655 /* RNGLTests.xctest */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		139105B71AF99BAD00B5F7CC /* Products */ = {
@@ -433,10 +410,6 @@
 					ProductGroup = 146834001AC3E56700842450 /* Products */;
 					ProjectRef = 146833FF1AC3E56700842450 /* React.xcodeproj */;
 				},
-				{
-					ProductGroup = 039D12481BFCB7E2003F4655 /* Products */;
-					ProjectRef = 350EB6BEDB4B4CBF9967FE00 /* RNGL.xcodeproj */;
-				},
 			);
 			projectRoot = "";
 			targets = (
@@ -480,20 +453,6 @@
 			fileType = archive.ar;
 			path = libRCTVibration.a;
 			remoteRef = 00C302E31ABCB9EE00DB3ED1 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		039D12571BFCB7E2003F4655 /* libRNGL.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libRNGL.a;
-			remoteRef = 039D12561BFCB7E2003F4655 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		039D12591BFCB7E2003F4655 /* RNGLTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = RNGLTests.xctest;
-			remoteRef = 039D12581BFCB7E2003F4655 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		139105C11AF99BAD00B5F7CC /* libRCTSettings.a */ = {

@@ -1,11 +1,11 @@
 # npm-native
-Just do `npm install react-native-yourplugin`.
+`npm install react-native-plugin` coming back to React Native.
 
 [![Build Status](https://travis-ci.org/ptmt/npm-native.svg)](https://travis-ci.org/ptmt/npm-native)
 
 ## Usage
 
-`package.json`:
+Add `npm-native` and two simple hooks to plugin's `package.json`:
 
 ```
 {
@@ -13,10 +13,14 @@ Just do `npm install react-native-yourplugin`.
   {
     "postinstall" : "npm-native --install path_to_lib.xcodeproj",
     "uninstall" : "npm-native --uninstall path_to_lib.xcodeproj"
+  },
+  dependencies: {
+    "npm-native": "0.1.x"
   }
 }
 ```
-`--path_to_lib` - where your XCode project is placed.
+`--path_to_lib` — where your XCode project is placed.
+E.g.`npm-native --install RNGL.xcodeproj` it would be for `gl-react-native`.
 
 ## TODO
 

@@ -5,6 +5,7 @@ set -e
 export REACT_PACKAGER_LOG="server.log"
 
 function cleanup {
+  echo "cleanup before exit"
   EXIT_CODE=$?
   set +e
 
