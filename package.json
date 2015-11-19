@@ -15,6 +15,9 @@
     "type": "git",
     "url": "git+https://github.com/ptmt/npm-native.git"
   },
+  "bin": {
+    "npm-native": "src/cli.js"
+  },
   "author": "Dmitriy Loktev",
   "license": "MIT",
   "bugs": {
@@ -26,6 +29,7 @@
     "eslint": "^1.9.0"
   },
   "dependencies": {
+    "cli": "^0.11.1",
     "xcode": "^0.8.2"
   }
 }

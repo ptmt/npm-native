@@ -1,21 +1,20 @@
 /* @flow */
 
-var xcode = require('xcode');
-var pbxFile = require('xcode/lib/pbxFile');
-var fs = require('fs');
-var path = require('path');
-// import xcode from 'xcode';
-// import fs from 'fs';
+const xcode = require('xcode');
+const pbxFile = require('xcode/lib/pbxFile');
+const fs = require('fs');
+const path = require('path');
 
 /*::
-type XCodeProjectPath = string;
-type DependencyOptions = {
-  targetProject: XCodeProjectPath,
-  DependencyOptions:
-  dependencyProject: XCodeProjectPath
-}
+  type XCodeProjectPath = string;
+  type DependencyOptions = {
+    targetProject: XCodeProjectPath,
+    DependencyOptions:
+    dependencyProject: XCodeProjectPath
+  }
 
-type PbxFile = any;
+  type PbxFile = any;
+
 */
 
 /*
@@ -23,8 +22,28 @@ type PbxFile = any;
  *  Should we do it recursively?
  *  What if there are more than one instance?
  */
-function findTargetProject()/*: XCodeProjectPath*/ {
-  return '';
+module.exports.findTargetProject = function()/*: XCodeProjectPath*/ {
+  const search = dir => {
+    var results = [];
+    const list = fs.readdirSync(dir);
+
+    list.forEach(file => {
+        file = dir + '/' + file;
+        const stat = fs.statSync(file);
+        if (stat && stat.isDirectory()
+        && file.indexOf('node_modules') === -1
+        && file.indexOf('.git') === -1) {
+          results = results.concat(search(file));
+        } else {
+          if (file.indexOf('.pbxproj') > -1) {
+              results.push(dir);
+          }
+        }
+    })
+    console.log(dir, results);
+    return results;
+  }
+  return search('.');
 }
 
 function getDepPath(dependency/*: DependencyOptions*/) {
@@ -32,7 +51,7 @@ function getDepPath(dependency/*: DependencyOptions*/) {
     dependency.depProject + '/project.pbxproj';
 }
 
-function getProducts(parsedProject) {
+function getProducts(parsedProject)/*: Array<any> */ {
   return parsedProject
     .pbxGroupByName('Products')
     .children
@@ -44,17 +63,15 @@ function getProducts(parsedProject) {
  *  Then we should do something like a transaction:
  *  If one operation fails, all operations should be rollback
 */
-module.exports.addDependency = function(dependency/*: DependencyOptions*/)/*: void*/ {
-
-  console.log('add', dependency.depProject, 'to', dependency.targetProject);
+module.exports.addDependency = function(dependency/*: DependencyOptions*/)/*: boolean*/ {
   const targetProjectPath = dependency.targetProject + '/project.pbxproj';
   const parsedTarget = xcode.project(targetProjectPath).parseSync();
   const parsedDependency = xcode.project(getDepPath(dependency)).parseSync();
   const pbxGroup = parsedTarget.pbxGroupByName('Libraries');
 
   if (pbxGroup.children.filter(c => c.comment.indexOf(dependency.depProject.split('/').slice(-1)[0]) > -1).length > 0) {
-    console.log(dependency.depProject, 'already installed!');
-    return;
+    dependency.cli.info(dependency.depProject, 'already installed!');
+    return false;
   }
 
   const products = getProducts(parsedDependency);
@@ -66,11 +83,11 @@ module.exports.addDependency = function(dependency/*: DependencyOptions*/)/*: vo
   pbxGroup.children.push(pbxGroupChild(file));
 
   products.forEach(p => parsedTarget.addStaticLibrary(p));
-  fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
+  //fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
+  return true;
 }
 
-module.exports.removeDependency = function(dependency/*: DependencyOptions*/)/*: void*/  {
-  console.log('remove', dependency.depProject, 'from', dependency.targetProject);
+module.exports.removeDependency = function(dependency/*: DependencyOptions*/)/*: boolean*/  {
   const targetProjectPath = dependency.targetProject + '/project.pbxproj';
   const parsedTarget = xcode.project(targetProjectPath).parseSync();
   const parsedDependency = xcode.project(getDepPath(dependency)).parseSync();
@@ -82,8 +99,8 @@ module.exports.removeDependency = function(dependency/*: DependencyOptions*/)/*:
     .filter(k => refSection[k].path && refSection[k].path.indexOf(dependency.depProject) > -1);
 
   if (!fileKey || fileKey.length === 0) {
-    console.log('Nothing to remove');
-    return;
+    dependency.cli.info('Nothing to remove');
+    return false;
   }
 
   const file = refSection[fileKey[0]];
@@ -99,7 +116,8 @@ module.exports.removeDependency = function(dependency/*: DependencyOptions*/)/*:
   // remove from Libraries pbxGroup
   pbxGroup.children = pbxGroup.children.filter(c => c.comment.indexOf(dependency.depProject.split('/').slice(-1)[0]) === -1);
 
-  fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
+  //fs.writeFileSync(targetProjectPath, parsedTarget.writeSync());
+  return true;
 }
 
 function pbxGroupChild(file) {
@@ -107,8 +125,4 @@ function pbxGroupChild(file) {
     obj.value = file.fileRef;
     obj.comment = file.basename;
     return obj;
-}
-
-function removeContainerItem(project) {
-  console.log(project.hash.project.objects['PBXContainerItemProxy']);
 }
