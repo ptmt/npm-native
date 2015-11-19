@@ -2,6 +2,7 @@
 `npm install react-native-plugin` coming back to React Native.
 
 [![Build Status](https://travis-ci.org/ptmt/npm-native.svg)](https://travis-ci.org/ptmt/npm-native)
+[![npm version](https://badge.fury.io/js/npm-native.svg)](https://badge.fury.io/js/npm-native)
 
 ## Usage
 
