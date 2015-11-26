@@ -3,6 +3,9 @@
 [![Build Status](https://travis-ci.org/ptmt/npm-native.svg)](https://travis-ci.org/ptmt/npm-native)
 [![npm version](https://badge.fury.io/js/npm-native.svg)](https://badge.fury.io/js/npm-native)
 
+**This is Obsolete** See https://github.com/rnpm/rnpm
+
+
 ## Usage
 
 Add `npm-native` and two simple hooks to plugin's `package.json`:
